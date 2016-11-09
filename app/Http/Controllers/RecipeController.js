@@ -84,8 +84,6 @@ class RecipeController {
       return
     }
 
-    yield recipe.related('category').load();
-
     console.log(recipe.toJSON())
     yield response.sendView('modifyRecipe', {
       recipe: recipe.toJSON(),
@@ -127,9 +125,16 @@ class RecipeController {
   }
 
   * delete (request, response) {
-      const recipeData = request.except('_csrf');
+      const id = request.param('id');
+      const recipe = yield Recipe.find(id);
 
-      recipe.delete();
+      if (!recipe) {
+        response.notFound('Recipe not found.')
+        return
+      }
+
+      yield recipe.delete();
+      response.redirect('/');
   }
 }
 

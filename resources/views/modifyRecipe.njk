@@ -50,10 +50,12 @@
         <select class="form-control" id="category_id" name="category_id">
           {% for category in categories %}
           <option value="{{ category.id }}"
-            {%if category.id == recipe.category.id %}
+            {% if category.id == recipe.category_id %}
             selected
             {% endif %}
-            > {{ category.name }} </option>
+            >
+            {{ category.name }}
+             </option>
           {% endfor %}
         </select>
         <br>
