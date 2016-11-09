@@ -55,7 +55,81 @@ class RecipeController {
   }
 
   * show(request, response) {
-    yield response.sendView('showRecipe');
+    const id = request.param('id');
+    const recipe = yield Recipe.find(id);
+
+
+    if (!recipe) {
+      response.notFound('Recipe not found.')
+      return
+    }
+
+    yield recipe.related('category').load()
+
+
+    yield response.sendView('showRecipe', {
+      recipe: recipe.toJSON()
+    })
+  }
+
+  * modify(request, response) {
+
+    const categories = yield Category.all();
+
+    const id = request.param('id');
+    const recipe = yield Recipe.find(id);
+
+    if (!recipe) {
+      response.notFound('Recipe not found.')
+      return
+    }
+
+    yield recipe.related('category').load();
+
+    console.log(recipe.toJSON())
+    yield response.sendView('modifyRecipe', {
+      recipe: recipe.toJSON(),
+      categories: categories.toJSON()
+    });
+  }
+
+  * doModify(request, response) {
+    const recipeData = request.except('_csrf');
+
+    console.log(recipeData);
+    const rules = {
+      name: 'required',
+      ingredients: 'required',
+      instructions: 'required',
+      category_id: 'required'
+    }
+    const validation = yield Validator.validateAll(recipeData, rules);
+    if (validation.fails()) {
+      yield request
+        .withAll()
+        .andWith({ errors: validation.messages() })
+        .flash()
+
+      response.redirect('back')
+      return
+    }
+
+    const id = request.param('id');
+    const recipe = yield Recipe.find(id);
+    recipe.name = recipeData.name;
+    recipe.ingredients = recipeData.ingredients;
+    recipe.instructions = recipeData.instructions;
+    recipe.category_id =  recipeData.category_id;
+    
+    yield recipe.save();
+
+    response.redirect('/');
+  }
+
+  * delete (request, response) {
+      const recipeData = request.except('_csrf');
+
+      recipe.delete();
   }
 }
 
